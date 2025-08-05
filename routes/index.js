@@ -1,20 +1,45 @@
-var express = require("express");
-var router = express.Router();
+const express = require("express");
+const router = express.Router();
 
-// Liste des mouvements possibles
 const moves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
-// Liste des actions possibles
-const actions = ["COLLECT", "NONE"]; // Pas de BOMB par défaut (risqué)
+const actions = ["NONE"];
 
-/**
- * GET /action
- * Retourne un move et une action
- */
+// Mémoire globale du bot entre appels
+let botMemory = {
+  position: [0, 0], // On suppose qu'on commence en 0,0
+  mazeMap: {}, // Clé "x,y" => "wall" ou "free" (pour l'instant vide)
+  lastMoveIndex: -1,
+};
+
+function getNextMove() {
+  // On cycle sur les directions pour explorer
+  botMemory.lastMoveIndex = (botMemory.lastMoveIndex + 1) % (moves.length - 1); // -1 car on exclut "STAY" pour explorer
+  return moves[botMemory.lastMoveIndex];
+}
+
 router.get("/action", (req, res) => {
-  // Choix aléatoire d'un mouvement
-  const move = moves[Math.floor(Math.random() * moves.length)];
-  // Choix aléatoire d'une action
-  const action = actions[Math.floor(Math.random() * actions.length)];
+  const move = getNextMove();
+  const action = "NONE";
+
+  // Optionnel: mise à jour position si on sait que le move a réussi (ici on simule)
+  // Par exemple, pour avancer la position :
+  const [x, y] = botMemory.position;
+  switch (move) {
+    case "UP":
+      botMemory.position = [x - 1, y];
+      break;
+    case "DOWN":
+      botMemory.position = [x + 1, y];
+      break;
+    case "LEFT":
+      botMemory.position = [x, y - 1];
+      break;
+    case "RIGHT":
+      botMemory.position = [x, y + 1];
+      break;
+    case "STAY":
+      break;
+  }
 
   res.json({ move, action });
 });
