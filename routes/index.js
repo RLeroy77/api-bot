@@ -1,14 +1,22 @@
 var express = require("express");
 var router = express.Router();
 
-/* GET home page. */
-router.get("/", function (req, res, next) {
-  res.send("Bienvenue sur BOT WAR API");
-});
+// Liste des mouvements possibles
+const moves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
+// Liste des actions possibles
+const actions = ["COLLECT", "NONE"]; // Pas de BOMB par défaut (risqué)
 
-// Route GET /action
-router.get("/action", function (req, res, next) {
-  res.json({ move: "UP", action: "COLLECT" });
+/**
+ * GET /action
+ * Retourne un move et une action
+ */
+router.get("/action", (req, res) => {
+  // Choix aléatoire d'un mouvement
+  const move = moves[Math.floor(Math.random() * moves.length)];
+  // Choix aléatoire d'une action
+  const action = actions[Math.floor(Math.random() * actions.length)];
+
+  res.json({ move, action });
 });
 
 module.exports = router;
