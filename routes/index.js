@@ -1,7 +1,8 @@
 var express = require("express");
 var router = express.Router();
 
-const directions = ["UP", "RIGHT", "DOWN", "LEFT"];
+const directions = ["UP", "RIGHT", "DOWN", "LEFT"]; // sens horaire
+let currentDirectionIndex = 0; // commence vers UP
 
 // Vérifie si la case à une direction donnée est libre
 function isFree(vision, direction) {
@@ -23,24 +24,37 @@ function isFree(vision, direction) {
   }
 }
 
-// Choisit le prochain mouvement selon la méthode "toujours à droite"
+// Méthode toujours à droite
 function decideMove(vision) {
-  // On va tester les directions dans un ordre de priorité : droite, avant, gauche, arrière
-  const priority = ["RIGHT", "UP", "LEFT", "DOWN"];
+  let rightIndex = (currentDirectionIndex + 1) % 4;
+  let frontIndex = currentDirectionIndex;
+  let leftIndex = (currentDirectionIndex + 3) % 4;
+  let backIndex = (currentDirectionIndex + 2) % 4;
 
-  for (let dir of priority) {
-    if (isFree(vision, dir)) {
-      return dir;
-    }
+  // Vérifie en priorité la droite
+  if (isFree(vision, directions[rightIndex])) {
+    currentDirectionIndex = rightIndex;
+    return directions[rightIndex];
   }
-  return "STAY"; // si bloqué
+  // Sinon avance si possible
+  if (isFree(vision, directions[frontIndex])) {
+    return directions[frontIndex];
+  }
+  // Sinon tourne à gauche
+  if (isFree(vision, directions[leftIndex])) {
+    currentDirectionIndex = leftIndex;
+    return directions[leftIndex];
+  }
+  // Sinon demi-tour
+  currentDirectionIndex = backIndex;
+  return directions[backIndex];
 }
 
 router.get("/action", (req, res) => {
   let vision;
   try {
     vision = JSON.parse(req.query.vision);
-  } catch (e) {
+  } catch {
     vision = null;
   }
 
