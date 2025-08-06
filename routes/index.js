@@ -109,6 +109,7 @@ router.get("/action", (req, res) => {
   botMemory.visited.add(key(posX, posY));
 
   const move = getMoveToNextStep();
+  const action = "NONE"; // Toujours NONE pour Maze Runner
 
   // Mise à jour position
   const [x, y] = botMemory.position;
@@ -127,8 +128,10 @@ router.get("/action", (req, res) => {
       break;
   }
 
-  console.log(`Position: ${botMemory.position}, Move: ${move}`);
-  res.json({ move });
+  console.log(
+    `Position: ${botMemory.position}, Move: ${move}, Action: ${action}`
+  );
+  res.json({ move, action });
 });
 
 module.exports = router;
