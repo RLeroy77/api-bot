@@ -1,8 +1,37 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f3f3f3;
+  padding: 20px;
 }
 
-a {
-  color: #00B7FF;
+h1 {
+  color: #333;
+}
+
+#status {
+  margin: 15px 0;
+  padding: 10px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.buttons {
+  margin: 10px 0;
+}
+
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  border-radius: 8px;
+  border: none;
+  background: #4cafef;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3b8ddb;
 }

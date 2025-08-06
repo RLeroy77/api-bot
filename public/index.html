@@ -1,13 +1,33 @@
-<html>
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bot Controller</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <h1>🎮 Contrôleur du Bot</h1>
 
-<head>
-  <title>Express</title>
-  <link rel="stylesheet" href="/stylesheets/style.css">
-</head>
+    <div id="status">
+      Commande actuelle : <span id="currentCommand">UP / NONE</span>
+    </div>
 
-<body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
-</body>
+    <h2>Mouvement</h2>
+    <div class="buttons">
+      <button onclick="sendCommand('UP')">⬆ UP</button><br />
+      <button onclick="sendCommand('LEFT')">⬅ LEFT</button>
+      <button onclick="sendCommand('RIGHT')">➡ RIGHT</button><br />
+      <button onclick="sendCommand('DOWN')">⬇ DOWN</button>
+    </div>
 
+    <h2>Action</h2>
+    <div class="buttons">
+      <button onclick="sendAction('NONE')">🚫 NONE</button>
+      <button onclick="sendAction('COLLECT')">💎 COLLECT</button>
+      <button onclick="sendAction('BOMB')">💣 BOMB</button>
+    </div>
+
+    <script src="/javascripts/script.js"></script>
+  </body>
 </html>
