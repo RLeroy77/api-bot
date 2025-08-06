@@ -3,20 +3,17 @@ const router = express.Router();
 
 const moves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
 
-// Mémoire globale
 let botMemory = {
   position: [0, 0],
-  mazeMap: {}, // clé "x,y" => "wall" ou "free"
+  mazeMap: {}, // "x,y" => "wall" | "free"
+  visited: new Set(), // positions déjà visitées
 };
 
-// Fonction pour transformer coordonnées en clé string
 function key(x, y) {
   return `${x},${y}`;
 }
 
-// Met à jour la carte mémoire avec la vision locale 3x3 reçue
 function updateMapWithVision(vision, posX, posY) {
-  // vision est un tableau 3x3
   for (let dx = -1; dx <= 1; dx++) {
     for (let dy = -1; dy <= 1; dy++) {
       const cell = vision[dx + 1][dy + 1];
@@ -27,9 +24,9 @@ function updateMapWithVision(vision, posX, posY) {
   }
 }
 
-// Trouve un mouvement valide (pas mur) parmi les moves
 function findValidMove() {
   const [x, y] = botMemory.position;
+  botMemory.visited.add(key(x, y));
 
   const directions = {
     UP: [x - 1, y],
@@ -39,20 +36,29 @@ function findValidMove() {
     STAY: [x, y],
   };
 
-  // Priorité : éviter murs
+  // 1️⃣ Cherche un move vers une case libre jamais visitée
   for (const move of moves) {
     const [nx, ny] = directions[move];
     const cell = botMemory.mazeMap[key(nx, ny)];
-    if (cell !== "wall" && cell !== undefined) {
+    if (cell === "free" && !botMemory.visited.has(key(nx, ny))) {
       return move;
     }
   }
-  // Si tout est mur ou inconnu, rester sur place
+
+  // 2️⃣ Sinon, recule vers une case libre déjà visitée (backtrack)
+  for (const move of moves) {
+    const [nx, ny] = directions[move];
+    const cell = botMemory.mazeMap[key(nx, ny)];
+    if (cell === "free") {
+      return move;
+    }
+  }
+
+  // 3️⃣ Si bloqué, rester sur place
   return "STAY";
 }
 
 router.get("/action", (req, res) => {
-  // Récupérer la vision locale si fournie en query param
   let vision;
   try {
     if (req.query.vision) {
@@ -63,15 +69,13 @@ router.get("/action", (req, res) => {
   }
 
   if (vision && Array.isArray(vision) && vision.length === 3) {
-    // Mettre à jour la carte
     const [posX, posY] = botMemory.position;
     updateMapWithVision(vision, posX, posY);
   }
 
-  // Trouver le meilleur mouvement
   const move = findValidMove();
 
-  // Met à jour la position si on bouge (supposition que move est valide)
+  // Mise à jour position
   const [x, y] = botMemory.position;
   switch (move) {
     case "UP":
@@ -88,6 +92,7 @@ router.get("/action", (req, res) => {
       break;
   }
 
+  console.log(`Position: ${botMemory.position}, Move: ${move}`);
   res.json({ move });
 });
 
