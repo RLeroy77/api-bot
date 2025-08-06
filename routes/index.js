@@ -1,12 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
-const moves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
+const moves = ["UP", "DOWN", "LEFT", "RIGHT"];
+const moveVectors = {
+  UP: [-1, 0],
+  DOWN: [1, 0],
+  LEFT: [0, -1],
+  RIGHT: [0, 1],
+};
 
 let botMemory = {
   position: [0, 0],
   mazeMap: {}, // "x,y" => "wall" | "free"
-  visited: new Set(), // positions déjà visitées
+  visited: new Set(),
+  path: [], // Liste de moves à suivre
 };
 
 function key(x, y) {
@@ -24,38 +31,63 @@ function updateMapWithVision(vision, posX, posY) {
   }
 }
 
-function findValidMove() {
-  const [x, y] = botMemory.position;
-  botMemory.visited.add(key(x, y));
+/**
+ * BFS pour trouver le chemin vers la case libre la plus proche non visitée
+ */
+function bfsPath(start) {
+  const queue = [[start]];
+  const visited = new Set([key(...start)]);
 
-  const directions = {
-    UP: [x - 1, y],
-    DOWN: [x + 1, y],
-    LEFT: [x, y - 1],
-    RIGHT: [x, y + 1],
-    STAY: [x, y],
-  };
+  while (queue.length > 0) {
+    const path = queue.shift();
+    const [cx, cy] = path[path.length - 1];
 
-  // 1️⃣ Cherche un move vers une case libre jamais visitée
-  for (const move of moves) {
-    const [nx, ny] = directions[move];
-    const cell = botMemory.mazeMap[key(nx, ny)];
-    if (cell === "free" && !botMemory.visited.has(key(nx, ny))) {
-      return move;
+    // Cherche une case libre non visitée comme objectif
+    if (
+      botMemory.mazeMap[key(cx, cy)] === "free" &&
+      !botMemory.visited.has(key(cx, cy))
+    ) {
+      return path;
+    }
+
+    // Explore voisins
+    for (const move of moves) {
+      const [dx, dy] = moveVectors[move];
+      const nx = cx + dx;
+      const ny = cy + dy;
+      const nk = key(nx, ny);
+
+      if (botMemory.mazeMap[nk] === "free" && !visited.has(nk)) {
+        visited.add(nk);
+        queue.push([...path, [nx, ny]]);
+      }
     }
   }
 
-  // 2️⃣ Sinon, recule vers une case libre déjà visitée (backtrack)
-  for (const move of moves) {
-    const [nx, ny] = directions[move];
-    const cell = botMemory.mazeMap[key(nx, ny)];
-    if (cell === "free") {
-      return move;
+  return null; // Aucun chemin trouvé
+}
+
+function getMoveToNextStep() {
+  // Si on n'a pas de chemin, en recalculer un
+  if (botMemory.path.length === 0) {
+    const newPath = bfsPath(botMemory.position);
+    if (newPath && newPath.length > 1) {
+      // On retire la position actuelle et garde que le chemin à suivre
+      botMemory.path = newPath.slice(1);
     }
   }
 
-  // 3️⃣ Si bloqué, rester sur place
-  return "STAY";
+  if (botMemory.path.length > 0) {
+    const [nextX, nextY] = botMemory.path.shift();
+    const [curX, curY] = botMemory.position;
+
+    if (nextX < curX) return "UP";
+    if (nextX > curX) return "DOWN";
+    if (nextY < curY) return "LEFT";
+    if (nextY > curY) return "RIGHT";
+  }
+
+  return "STAY"; // Rien à faire
 }
 
 router.get("/action", (req, res) => {
@@ -68,12 +100,15 @@ router.get("/action", (req, res) => {
     vision = null;
   }
 
+  const [posX, posY] = botMemory.position;
+
   if (vision && Array.isArray(vision) && vision.length === 3) {
-    const [posX, posY] = botMemory.position;
     updateMapWithVision(vision, posX, posY);
   }
 
-  const move = findValidMove();
+  botMemory.visited.add(key(posX, posY));
+
+  const move = getMoveToNextStep();
 
   // Mise à jour position
   const [x, y] = botMemory.position;
