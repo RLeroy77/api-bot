@@ -1,59 +1,78 @@
 var express = require("express");
 var router = express.Router();
 
-const moves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
-const actions = ["NONE"]; // on supprime COLLECT pour Maze Runner
+// Directions et rotations
+const directions = ["UP", "RIGHT", "DOWN", "LEFT"];
+let currentDirectionIndex = 0; // 0 = UP par défaut
 
-/**
- * GET /action
- * Query param vision : JSON 3x3
- */
+// Fonction utilitaire pour vérifier si une case est libre
+function isFree(vision, move) {
+  switch (move) {
+    case "UP":
+      return vision[0][1] === "free";
+    case "DOWN":
+      return vision[2][1] === "free";
+    case "LEFT":
+      return vision[1][0] === "free";
+    case "RIGHT":
+      return vision[1][2] === "free";
+    default:
+      return false;
+  }
+}
+
+// Obtenir direction à droite
+function rightOf(dirIndex) {
+  return directions[(dirIndex + 1) % 4];
+}
+
+// Obtenir direction à gauche
+function leftOf(dirIndex) {
+  return directions[(dirIndex + 3) % 4];
+}
+
+// Demi-tour
+function backOf(dirIndex) {
+  return directions[(dirIndex + 2) % 4];
+}
+
 router.get("/action", (req, res) => {
   let vision;
-
   try {
     vision = JSON.parse(req.query.vision);
   } catch (e) {
     vision = null;
   }
 
-  // Fonction qui vérifie si la case en direction 'move' est libre
-  function canMove(move) {
-    if (!vision) return true; // Sans vision, on joue au hasard
-
-    // vision est une matrice 3x3 : [ligne][colonne]
-    // Le centre est vision[1][1] => la position actuelle
-    // Les directions :
-    // UP => vision[0][1]
-    // DOWN => vision[2][1]
-    // LEFT => vision[1][0]
-    // RIGHT => vision[1][2]
-
-    switch (move) {
-      case "UP":
-        return vision[0][1] === "free";
-      case "DOWN":
-        return vision[2][1] === "free";
-      case "LEFT":
-        return vision[1][0] === "free";
-      case "RIGHT":
-        return vision[1][2] === "free";
-      case "STAY":
-        return true;
-    }
-    return false;
+  if (!vision) {
+    // Si aucune vision reçue → avancer tout droit
+    res.json({ move: directions[currentDirectionIndex], action: "NONE" });
+    return;
   }
 
-  // Filtrer les moves valides
-  const validMoves = moves.filter(canMove);
+  let dirIndex = currentDirectionIndex;
 
-  // Choisir un move valide aléatoire
-  const move =
-    validMoves[Math.floor(Math.random() * validMoves.length)] || "STAY";
+  // Vérifie à droite
+  if (isFree(vision, rightOf(dirIndex))) {
+    dirIndex = (dirIndex + 1) % 4; // Tourner à droite
+  }
+  // Sinon si devant est libre, on garde la direction
+  else if (isFree(vision, directions[dirIndex])) {
+    // rien à changer
+  }
+  // Sinon si gauche est libre, on tourne à gauche
+  else if (isFree(vision, leftOf(dirIndex))) {
+    dirIndex = (dirIndex + 3) % 4;
+  }
+  // Sinon demi-tour
+  else {
+    dirIndex = (dirIndex + 2) % 4;
+  }
 
-  const action = "NONE";
+  currentDirectionIndex = dirIndex;
+  const move = directions[dirIndex];
 
-  res.json({ move, action });
+  res.json({ move, action: "NONE" });
 });
 
 module.exports = router;
