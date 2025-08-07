@@ -3,26 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Maze Bot Controller</title>
+    <title>Bot Command Center</title>
     <link rel="stylesheet" href="stylesheets/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
-    <h1>Maze Bot Controller</h1>
-    <div class="controls">
-      <button onclick="sendCommand('UP')">▲</button>
-      <div>
-        <button onclick="sendCommand('LEFT')">◀</button>
-        <button onclick="sendCommand('STAY')">⏸</button>
-        <button onclick="sendCommand('RIGHT')">▶</button>
+    <h1>🎮 BOT ARCADE</h1>
+
+    <div class="command-section">
+      <div class="dpad">
+        <button onclick="sendCommand('UP')" id="btn-UP">▲</button>
+        <div class="middle-row">
+          <button onclick="sendCommand('LEFT')" id="btn-LEFT">◀</button>
+          <button onclick="sendCommand('STAY')" id="btn-STAY">■</button>
+          <button onclick="sendCommand('RIGHT')" id="btn-RIGHT">▶</button>
+        </div>
+        <button onclick="sendCommand('DOWN')" id="btn-DOWN">▼</button>
       </div>
-      <button onclick="sendCommand('DOWN')">▼</button>
+
+      <div class="actions">
+        <button onclick="sendCommand(undefined, 'NONE')" id="btn-NONE">
+          NONE
+        </button>
+        <button onclick="sendCommand(undefined, 'ATTACK')" id="btn-ATTACK">
+          ATTACK
+        </button>
+        <button onclick="sendCommand(undefined, 'DEFEND')" id="btn-DEFEND">
+          DEFEND
+        </button>
+      </div>
     </div>
 
-    <h3>Action</h3>
-    <button onclick="sendCommand(currentMove, 'NONE')">NONE</button>
-    <button onclick="sendCommand(currentMove, 'COLLECT')">COLLECT</button>
-    <button onclick="sendCommand(currentMove, 'BOMB')">BOMB</button>
+    <div id="status">Chargement de la commande...</div>
 
-    <script src="javascripts/controller.js"></script>
+    <script src="javascripts/script.js"></script>
   </body>
 </html>

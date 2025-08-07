@@ -1,20 +1,31 @@
 const express = require("express");
 const router = express.Router();
 
-// Variable partagée (commande actuelle)
-let currentCommand = { move: "UP", action: "NONE" };
+// Commande courante, initialisée avec STAY / NONE
+let currentCommand = { move: "STAY", action: "NONE" };
 
-// Endpoint pour que le jeu récupère la commande
+// POST /command pour recevoir la commande du frontend
+router.post("/command", (req, res) => {
+  const { move, action } = req.body;
+
+  // Valide les valeurs reçues (optionnel mais conseillé)
+  const validMoves = ["UP", "DOWN", "LEFT", "RIGHT", "STAY"];
+  const validActions = ["NONE", "COLLECT", "BOMB"];
+
+  if (move && validMoves.includes(move.toUpperCase())) {
+    currentCommand.move = move.toUpperCase();
+  }
+  if (action && validActions.includes(action.toUpperCase())) {
+    currentCommand.action = action.toUpperCase();
+  }
+
+  console.log("Commande reçue :", currentCommand);
+  res.json({ success: true, command: currentCommand });
+});
+
+// GET /action pour retourner la commande actuelle
 router.get("/action", (req, res) => {
   res.json(currentCommand);
 });
 
-// Endpoint pour que l'interface change la commande
-router.post("/command", (req, res) => {
-  const { move, action } = req.body;
-  if (move) currentCommand.move = move;
-  if (action) currentCommand.action = action;
-  res.json({ success: true, command: currentCommand });
-});
-
-module.exports = { router, currentCommand };
+module.exports = router;
